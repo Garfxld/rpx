@@ -1,16 +1,42 @@
+mod command;
+mod project;
 mod prompt;
-
-use std::{fs::{self, File}, path::Path};
+mod util;
 
 use clap::{Arg, Command};
-use prompt::Prompt;
-
-use serde_json::{json, to_writer_pretty};
 
 
+fn main() -> anyhow::Result<()> {
+    env_logger::init();
 
-fn main() {
-    let matches = Command::new("rpx")
+    let command = get_command();
+    let matches = command.get_matches();
+
+    match matches.subcommand() {
+        Some(("new", new_matches)) => {
+            command::new::exec(&new_matches)?;
+        }
+        Some(("add", add_matches)) => {
+            command::add::exec(&add_matches)?;
+        }
+        Some(("info", info_matches)) => {
+            command::info::exec(&info_matches)?;
+        }
+        Some(("build", build_matches)) => {
+            command::build::exec(&build_matches)?;
+        }
+        Some(("tree", tree_matches)) => {
+            command::tree::exec(&tree_matches)?;
+        }
+        _ => unreachable!(), // should never be reachable
+    }
+
+    Ok(())
+}
+
+
+fn get_command() -> Command {
+    Command::new("rpx")
         .version("v0.1")
         .about("about rpx")
         .subcommand_required(true)
@@ -20,8 +46,28 @@ fn main() {
                 .arg(
                     Arg::new("name")
                         .help("The name of the resouce pack")
+                        .num_args(1),
+                ),
+        )
+        .subcommand(
+            Command::new("init")
+                .about("Initializes a directory to ")
+                .arg(
+                    Arg::new("path")
+                        .help("The path to initialize the resource pack")
+                        .required(true)
+                        .num_args(1),
+                ),
+        )
+        .subcommand(
+            Command::new("add")
+                .about("todo")
+                .arg(
+                    Arg::new("path")
+                        .help("todo")
+                        .required(true)
                         .num_args(1)
-                )
+                ),
         )
         .subcommand(
             Command::new("info")
@@ -34,55 +80,16 @@ fn main() {
                     Arg::new("path")
                         .help("The path of the resource pack to build")
                         .required(true)
-                        .num_args(1)
-                )
+                        .num_args(1),
+                ),
         )
-        .get_matches();
-
-    match matches.subcommand() {
-        Some(("new", new_matches)) => {
-
-            let name = new_matches.get_one::<String>("name")
-                .unwrap_or(
-                    &Prompt::new("What should the new project be called?\n    Note", "blah-blah")
-                        .prompt()
-                )
-                .to_owned();
-            let directory = Path::new(&name);
-            
-            let version = Prompt::new("What is the format of the project?", "34")
-                .numbers_only()
-                .prompt();
-            
-
-
-            if directory.exists() {
-                panic!("directory already exists");
-            }
-
-            fs::create_dir(&directory).unwrap();
-            
-            let json = json!({
-                "pack": {
-                    "pack_format": version.parse::<i32>().unwrap(),
-                    "description": "",
-                },
-            });
-            let file = File::create(directory.join("pack.mcmeta")).unwrap();
-            to_writer_pretty(file, &json).unwrap();
-
-            fs::create_dir(directory.join("assets")).unwrap();
-
-            println!("directory: {}, name: {}, version: {}", directory.to_str().unwrap(), name, version);
-        }
-        Some(("info", _)) => {
-            println!("info");
-        }
-        Some(("build", _)) => {
-            println!("build");
-        }
-        _ => unreachable!()
-    }
-
+        .subcommand(
+            Command::new("tree")
+                .about("Prints the resource pack tree")
+                .arg(
+                    Arg::new("path")
+                        .help("todo")
+                        .num_args(1)
+                    ),
+        )
 }
-

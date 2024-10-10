@@ -1,2 +1,5 @@
 [profile.dev]
 incremental = true
+
+[env]
+# RUST_LOG="debug"

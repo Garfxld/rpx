@@ -1,6 +1,6 @@
 use std::io::{stdout, Result};
 
-use crossterm::{cursor::{RestorePosition, SavePosition}, event::{read, Event, KeyCode, KeyEventKind}, execute, style::{Color, Print, ResetColor, SetForegroundColor}, terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType}};
+use crossterm::{cursor::{RestorePosition, SavePosition}, event::{read, Event, KeyCode, KeyEventKind}, execute, style::{Color, Print, ResetColor, SetForegroundColor, Stylize}, terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType}};
 
 
 pub struct Prompt {
@@ -28,19 +28,19 @@ impl Prompt {
     }
 
 
-    pub fn prompt(&mut self) -> String {
+    pub fn prompt(&self) -> String {
         self._prompt()
             .expect("failed to prompt")
     }
 
 
-    fn _prompt(&mut self) -> Result<String> {
+    fn _prompt(&self) -> Result<String> {
 
         enable_raw_mode()?;
 
         let w = &mut stdout();
 
-        execute!(w, SetForegroundColor(Color::Blue), Print("  → "), ResetColor, Print(&self.desc), Print("\n"))?;
+        println!("  {} {}", "→".blue(), self.desc);
         execute!(w, Print("    "),
                     SavePosition,
                     SetForegroundColor(Color::DarkGrey),
@@ -70,9 +70,9 @@ impl Prompt {
                             execute!(w, RestorePosition, Clear(ClearType::UntilNewLine))?;
                             
                             if !line.is_empty() {
-                                execute!(w, Print(&line))?;   
+                                println!("{}", line); 
                             } else {
-                                execute!(w, SetForegroundColor(Color::DarkGrey), Print(&self.default), ResetColor)?;
+                                println!("{}", self.default.clone().dark_grey());
                             }
                         }
                         KeyCode::Enter => {
