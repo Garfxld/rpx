@@ -34,9 +34,12 @@ pub fn exec(matches: &ArgMatches) -> Result<()> {
 
     let assets_path = Path::new("C:\\Users\\garfxld\\Downloads\\assets");
 
-    
+
     let from = assets_path.join("minecraft").join(&location);
     let to = project.get_namespace(namespace).join(&location);
+
+    debug!("from: {:?}", from);
+    debug!("to: {:?}", to);
 
     let i = copy(&from, &to)?;
     println!("+ {} files.", i);
@@ -52,11 +55,6 @@ where
 {
     let from = from.as_ref();
     let to = to.as_ref();
-
-
-    if to.exists() {
-        return Ok(0);
-    }
 
     if let Some(parent) = to.parent() {
         if !parent.exists() {
@@ -74,6 +72,10 @@ where
         for entry in fs::read_dir(from)? {
             let entry = entry?.path();
             let entry_to = &to.join(entry.file_name().unwrap());
+
+            if entry_to.exists() {
+                continue;
+            }
 
             i += copy(&entry, &entry_to)?;
         }

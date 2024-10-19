@@ -2,4 +2,4 @@
 incremental = true
 
 [env]
-# RUST_LOG="debug"
+RUST_LOG="debug"
